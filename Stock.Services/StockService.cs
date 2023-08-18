@@ -12,9 +12,14 @@ namespace Stock.Services
             _stockRepository = stockRepository;
         }
 
-        public IList<StockManagement.Models.Stock> GetStocks()
+        public async Task<IList<StockManagement.Models.Stock>> GetStocks()
         {
-            return _stockRepository.GetStocks();
+            return await _stockRepository.GetStocks();
+        }
+
+        public async Task UpdateStocks()
+        {
+            await _stockRepository.UpdateStocks();
         }
     }
 }

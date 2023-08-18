@@ -5,7 +5,8 @@ namespace StockManagement.DataAccess.IRepository
 {
     public interface IStockRepository
     {
-        IList<Stock> GetStocks();
+        Task<List<Stock>> GetStocks();
+        Task UpdateStocks();
         Task<bool> StockAvailable(int stockId);
     }
 }

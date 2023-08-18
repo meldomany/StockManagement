@@ -14,9 +14,30 @@ namespace StockManagement.DataAccess.Repository
             _dbContext = dbContext;
         }
 
-        public IList<Stock> GetStocks()
+        public async Task<List<Stock>> GetStocks()
         {
-            return _dbContext.Stocks.ToList();
+            var random = new Random();
+            var stocks = await _dbContext.Stocks.ToListAsync();
+            foreach (var stock in stocks)
+            {
+                stock.Price = random.Next(1, 101);
+            }
+            _dbContext.Stocks.UpdateRange(stocks);
+            await _dbContext.SaveChangesAsync();
+
+            return await Task.FromResult(stocks);
+        }
+
+        public async Task UpdateStocks()
+        {
+            var random = new Random();
+            var stocks = await _dbContext.Stocks.ToListAsync();
+            foreach (var stock in stocks)
+            {
+                stock.Price = random.Next(1, 101);
+            }
+            _dbContext.Stocks.UpdateRange(stocks);
+            await _dbContext.SaveChangesAsync();
         }
 
         public async Task<bool> StockAvailable(int stockId)

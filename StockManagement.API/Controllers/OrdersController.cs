@@ -1,7 +1,8 @@
 ﻿using AutoMapper;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.SignalR;
 using Stock.Services.IService;
+using StockManagement.API.Services.HubService;
 using StockManagement.Models;
 using StockManagement.Models.DTOs.Order;
 
@@ -12,12 +13,19 @@ namespace StockManagement.API.Controllers
     public class OrdersController : ControllerBase
     {
         private readonly IOrderService _orderService;
+        private readonly IStockService _stockService;
         private readonly IMapper _mapper;
+        private readonly IHubContext<BroadcastHub, IHubClient> _hubContext;
 
-        public OrdersController(IOrderService orderService, IMapper mapper)
+        public OrdersController(IOrderService orderService, 
+            IStockService stockService, 
+            IMapper mapper, 
+            IHubContext<BroadcastHub, IHubClient> hubContext)
         {
             _orderService = orderService;
-            this._mapper = mapper;
+            _stockService = stockService;
+            _mapper = mapper;
+            _hubContext = hubContext;
         }
 
         [HttpGet]
@@ -42,7 +50,8 @@ namespace StockManagement.API.Controllers
             if (ModelState.IsValid)
             {
                 var newOrder = await _orderService.CreateOrder(_mapper.Map<Order>(order));
-                if(newOrder.Id > 0)
+
+                if (newOrder.Id > 0)
                 {
                     return StatusCode(201, _mapper.Map<OrderDto>(await _orderService.GetOrderByID(newOrder.Id)));
                 }

@@ -2,6 +2,7 @@
 {
     public interface IStockService
     {
-        IList<StockManagement.Models.Stock> GetStocks();
+        Task <IList<StockManagement.Models.Stock>> GetStocks();
+        Task UpdateStocks();
     }
 }

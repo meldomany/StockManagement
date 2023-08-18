@@ -1,10 +1,8 @@
 ﻿using AutoMapper;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.SignalR;
 using Stock.Services.IService;
 using StockManagement.API.Services.HubService;
-using StockManagement.API.Services.TimerFeatures;
 using StockManagement.Models.DTOs.Stock;
 
 namespace StockManagement.API.Controllers
@@ -15,26 +13,31 @@ namespace StockManagement.API.Controllers
     {
         private readonly IStockService _stockService;
         private readonly IMapper _mapper;
-        private readonly IHubContext<StockHub> _hub;
-        private readonly TimerManager _timer;
+        private readonly IHubContext<BroadcastHub, IHubClient> _hubContext;
 
-        public StocksController(IStockService stockService, IMapper mapper, IHubContext<StockHub> hub, TimerManager timer)
+        public StocksController(IStockService stockService, 
+            IMapper mapper, 
+            IHubContext<BroadcastHub, IHubClient> hubContext)
         {
             _stockService = stockService;
-            this._mapper = mapper;
-            this._hub = hub;
-            this._timer = timer;
+            _mapper = mapper;
+            _hubContext = hubContext;
         }
 
         [HttpGet]
         [Route("GetStocks")]
-        public IActionResult GetStocks()
+        public async Task<IActionResult> GetStocks()
         {
-            if (!_timer.IsTimerStarted)
-                _timer.PrepareTimer(() => _hub.Clients.All.SendAsync("TransferStockData", _mapper.Map<List<StockDto>>(_stockService.GetStocks())));
- 
-            return Ok(new { Message = "Request Completed" });
+            return Ok(_mapper.Map<List<StockDto>>(await _stockService.GetStocks()));
         }
 
+        [HttpGet]
+        [Route("UpdateStocks")]
+        public async Task<IActionResult> UpdateStocks()
+        {
+            await _stockService.UpdateStocks();
+            await _hubContext.Clients.All.BroadcastMessage();
+            return Ok();
+        }
     }
 }
